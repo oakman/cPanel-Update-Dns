@@ -41,7 +41,7 @@ if __name__ == "__main__":
     value = args.value if args.value != None else ""
 
     # Fetch existing DNS records
-    q = Request(CONFIG['url'] + '/xml-api/cpanel?cpanel_xmlapi_module=ZoneEdit&cpanel_xmlapi_func=fetchzone&cpanel_xmlapi_apiversion=2&domain=' + domain)
+    q = Request(CONFIG['url'] + '/xml-api/cpanel?cpanel_xmlapi_module=ZoneEdit&cpanel_xmlapi_func=fetchzone&cpanel_xmlapi_apiversion=2&domain=' + domain + '&type=' + type)
     q.add_header('Authorization', auth_string)
     xml = urlopen(q).read().decode("utf-8")
 
