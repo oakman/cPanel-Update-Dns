@@ -1,5 +1,6 @@
 import base64
 import argparse
+import json
 from urllib.parse import urlencode
 from urllib.request import urlopen,Request
 import xml.etree.ElementTree as etree
@@ -41,16 +42,16 @@ if __name__ == "__main__":
     value = args.value if args.value != None else ""
 
     # Fetch existing DNS records
-    q = Request(CONFIG['url'] + '/xml-api/cpanel?cpanel_xmlapi_module=ZoneEdit&cpanel_xmlapi_func=fetchzone&cpanel_xmlapi_apiversion=2&domain=' + domain + '&type=' + type)
+    q = Request(CONFIG['url'] + '/json-api/cpanel?cpanel_jsonapi_module=ZoneEdit&cpanel_jsonapi_func=fetchzone&cpanel_jsonapi_apiversion=2&domain=' + domain + '&type=' + type)
     q.add_header('Authorization', auth_string)
-    xml = urlopen(q).read().decode("utf-8")
 
-    # Parse the records to find if the record already exists
-    root = etree.fromstring(xml)
+    # Load and Parse the records to find if the record already exists
+    records = json.loads(urlopen(q).read().decode("utf-8"))['cpanelresult']['data'][0]['record']
+
     line = "0"
-    for child in root.find('data').findall('record'):
-        if child.find('name') != None and child.find('name').text == record:
-            line = str(child.find('line').text)
+    for json_record in records:
+        if json_record['name'] != None and json_record['name'] == record:
+            line = str(json_record['line'])
             break
 
     # Update or add the record
@@ -58,15 +59,13 @@ if __name__ == "__main__":
     if type == "TXT":
         query = "&" + urlencode( {'txtdata': value} )
 
-    url = CONFIG['url'] + "/xml-api/cpanel?cpanel_xmlapi_module=ZoneEdit&cpanel_xmlapi_func=" + ("add" if line == "0" else "edit") + "_zone_record&cpanel_xmlapi_apiversion=2&domain="+ domain + "&name=" + record + "&type=" + type + "&ttl=" + ttl + query
+    url = CONFIG['url'] + "/json-api/cpanel?cpanel_jsonapi_module=ZoneEdit&cpanel_jsonapi_func=" + ("add" if line == "0" else "edit") + "_zone_record&cpanel_jsonapi_apiversion=2&domain="+ domain + "&name=" + record + "&type=" + type + "&ttl=" + ttl + query
     if line != "0":
         url += "&Line=" + line
 
-    print(url)
-
     q = Request(url)
     q.add_header('Authorization', auth_string)
-    a = urlopen(q).read().decode("utf-8")
+    json_response = json.loads(urlopen(q).read().decode("utf-8"))
 
-    # TODO: Should parse the result
-    print(a)
+    # parse and print pretty
+    print(json.dumps(json_response, indent=4))
