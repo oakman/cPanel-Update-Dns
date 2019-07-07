@@ -6,7 +6,7 @@ from urllib.request import urlopen,Request
 import xml.etree.ElementTree as etree
 
 def fetch_external_ip(type):
-    url = 'http://' + ("ipv6" if type == "AAAA" else "ipv4") + '.myexternalip.com/raw'
+    url = 'https://' + ("api6" if type == "AAAA" else "api") + '.ipify.org'
     ip = urlopen(url).read().decode('utf-8')[:-1]
     return ip
 
